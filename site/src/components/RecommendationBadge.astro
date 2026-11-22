@@ -1,0 +1,27 @@
+---
+interface Props {
+  recommendation: string;
+  flags?: string[];
+}
+const { recommendation, flags = [] } = Astro.props;
+const className = `risk recommendation-${String(recommendation).toLowerCase().replaceAll("_", "-")}`;
+
+function formatRecommendation(value: string) {
+  if (value === "DO_NOT_INSTALL") {
+    return "Avoid installing";
+  }
+  if (value === "CAUTION") {
+    return "Human Review Advised";
+  }
+  if (value === "SAFE") {
+    return "Safe to use";
+  }
+  if (value === "BLOCK") {
+    return "Avoid installing";
+  }
+  return "Unknown";
+}
+---
+
+<span class={className}>{formatRecommendation(recommendation)}</span>
+{flags.map((flag) => <span class="risk flag">{flag}</span>)}

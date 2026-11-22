@@ -1,0 +1,7 @@
+.assessment-runtime:
+  image: "$ASSESSMENT_IMAGE"
+  tags: ["$ASSESSMENT_RUNNER_TAG"]
+  variables:
+    SKILL_ASSESSMENT_BASE_DIR: "$CI_PROJECT_DIR"
+  before_script:
+    - python -m pip install --upgrade --force-reinstall . -r assessment/requirements.txt

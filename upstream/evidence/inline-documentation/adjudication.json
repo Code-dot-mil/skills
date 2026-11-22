@@ -1,0 +1,25 @@
+{
+  "safe_to_use": true,
+  "summary": "No security findings were reported for the supplied SKILL.md, and the visible content is a documentation-writing skill focused on accurate inline comments/docstrings rather than tool use, external access, or privileged actions.",
+  "coverage_sufficient": true,
+  "coverage_reason": "The only supplied artifact was SKILL.md and it was inspected. Coverage notes mention unresolved local path-like references in markdown text, but no additional files were provided for review and nothing in the supplied content indicates unsafe behavior.",
+  "findings": [],
+  "status": "completed",
+  "scope": "MVP: examines SKILL.md and scanner evidence only; additional skill files are not independently reviewed.",
+  "metadata": {
+    "provider": "azure_openai",
+    "model": "gpt-5.4",
+    "response_model": "gpt-5.4-2026-03-05",
+    "created_at": "2026-11-11T19:47:37.152880+00:00",
+    "duration_seconds": 1.984,
+    "calls_attempted": 1,
+    "calls_succeeded": 1,
+    "token_usage": {
+      "prompt_tokens": 4335,
+      "completion_tokens": 111,
+      "total_tokens": 4446
+    },
+    "enforce_coverage": false
+  },
+  "skill_sha256": "f90047f021de188b92058b1cdb4b9872d9b3c3a317c457cea5a2697b58b975e4"
+}

@@ -1,0 +1,40 @@
+---
+import LocalDate from "../components/LocalDate";
+import { exchangeIndex, builtAt } from "../lib/exchange-data.mjs";
+import "../styles/global.css";
+import { relativeSiteRoot } from "../lib/portable-paths.mjs";
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <base href={relativeSiteRoot(Astro.url.pathname)} />
+    <link rel="icon" href="favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="page">
+      <slot />
+    </main>
+    <footer>SkLC {exchangeIndex.version} · Build {exchangeIndex.revision} from <LocalDate value={builtAt} client:load /></footer>
+  </body>
+</html>
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  main {
+    flex: 1;
+  }
+  footer {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+</style>

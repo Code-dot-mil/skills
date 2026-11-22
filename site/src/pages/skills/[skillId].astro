@@ -1,0 +1,263 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import RecommendationBadge from "../../components/RecommendationBadge.astro";
+import ScannerFindings from "../../components/ScannerFindings";
+import LocalDate from "../../components/LocalDate";
+import { sanitizeSkillHtml } from "../../lib/sanitize-skill-html.mjs";
+import { sanitizeSkillMarkdown } from "../../lib/sanitize-skill-markdown.mjs";
+import { createMarkdownProcessor, parseFrontmatter } from "@astrojs/markdown-remark";
+import {
+  exchangeIndex as index,
+  scannerArtifactsTable,
+  scannerFindingsTable,
+  scannerRunsTable,
+} from "../../lib/exchange-data.mjs";
+
+export function getStaticPaths() {
+  return index.skills.map((skill) => ({
+    params: { skillId: skill.skill_id },
+    props: { skill },
+  }));
+}
+
+const { skill } = Astro.props;
+const scannerRuns = scannerRunsTable.rows
+  .filter((row) => row.skill_id === skill.skill_id)
+  .sort((left, right) => Date.parse(right.last_scanned || "") - Date.parse(left.last_scanned || ""));
+const scannerRunIds = new Set(scannerRuns.map((run) => run.id));
+const scannerFindings = scannerFindingsTable.rows.filter((row) => scannerRunIds.has(row.scanner_run_id));
+const scannerArtifacts = scannerArtifactsTable.rows.filter((row) => scannerRunIds.has(row.scanner_run_id));
+const scannerProvenance = skill.scanner_provenance || {
+  name: "skillspector",
+  version: undefined,
+  scan_mode: skill.scan_mode,
+  provider: undefined,
+  model: undefined,
+};
+const markdownProcessor = await createMarkdownProcessor({
+  rehypePlugins: [sanitizeSkillMarkdown],
+});
+const parsedSkillMarkdown = parseFrontmatter(skill.skill_md_content);
+const skillFrontmatterRows = flattenFrontmatterRows(parsedSkillMarkdown.frontmatter);
+const renderedSkillMarkdown = await markdownProcessor.render(parsedSkillMarkdown.content);
+const sanitizedSkillMarkdown = sanitizeSkillHtml(renderedSkillMarkdown.code);
+
+function formatFrontmatterValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+  return String(value ?? "");
+}
+
+function flattenFrontmatterRows(value: unknown, prefix = ""): [string, unknown][] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return prefix ? [[prefix, value]] : [];
+  }
+
+  return Object.entries(value)
+    .flatMap(([key, childValue]) => {
+      const rowKey = prefix ? `${prefix}.${key}` : key;
+      if (childValue && typeof childValue === "object" && !Array.isArray(childValue)) {
+        return flattenFrontmatterRows(childValue, rowKey);
+      }
+      return [[rowKey, childValue]];
+    });
+}
+---
+
+<BaseLayout title={skill.skill_id}>
+  <header class="header detail-hero">
+    <p><a class="back-link" href="./">Back to catalog</a></p>
+    <div class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">Skill package</p>
+        <h1>{skill.skill_id}</h1>
+        <p class="hero-description">{skill.description}</p>
+        <div class="recommendation-line">
+          <span class="recommendation-label">Recommendation</span>
+          <RecommendationBadge recommendation={skill.recommendation} flags={skill.confidence_flags} />
+          <button class="icon-button compact-circle" type="button" data-dialog-target="recommendation-dialog" aria-label="How recommendation is calculated">i</button>
+        </div>
+        <div class="hero-actions">
+          <a class="primary-action" href={skill.download_path}>Download skill package</a>
+        </div>
+      </div>
+      <aside class="trust-panel" aria-label="Trust snapshot">
+        <p class="eyebrow">Trust snapshot</p>
+        <dl class="trust-list">
+          <div>
+            <dt>Scanner</dt>
+            <dd>{scannerProvenance.name || "skillspector"} {scannerProvenance.version || ""}</dd>
+          </div>
+          <div>
+            <dt>Last scanned</dt>
+            <dd><LocalDate value={skill.last_scanned} client:load /></dd>
+          </div>
+          <div class="trust-owner">
+            <dt>Owner</dt>
+            <dd>{skill.owner || "Not declared"}</dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+    <dialog id="recommendation-dialog">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="Close">Close</button>
+      </form>
+      <h2>Recommendation</h2>
+      <p>
+        A security scanner looks for possible problems. An AI then checks the scan results and reads the skill’s main instructions.
+      </p>
+      <ul>
+        <li><strong>Safe to use:</strong> The AI found no safety problems in what it checked.</li>
+        <li><strong>Human Review Advised:</strong> The AI could not say the skill was safe. Have someone check it before you use it.</li>
+        <li><strong>Unknown:</strong> The AI review is missing or unfinished.</li>
+      </ul>
+      <p>
+        The scanner may raise a warning that the AI finds harmless. That’s why the scanner’s risk rating can differ from this recommendation.
+      </p>
+      <p>The AI review covers the main instructions and scan results. Other files in the package are outside that review.</p>
+    </dialog>
+    <div class="metadata-strip">
+      <span><strong>Last updated:</strong> <LocalDate value={skill.last_updated} client:load /></span>
+      <span><strong>Created:</strong> <LocalDate value={skill.first_observed} client:load /></span>
+    </div>
+  </header>
+
+  <section class="tabs">
+    <input class="tab-radio" type="radio" id="tab-files" name="detail-tabs" checked />
+    <input class="tab-radio" type="radio" id="tab-assessment" name="detail-tabs" />
+
+    <div class="tab-list" role="tablist" aria-label="Skill details">
+      <label class="tab-label" id="tab-files-label" for="tab-files" role="tab" aria-controls="panel-files">Skill Instructions</label>
+      <label class="tab-label" id="tab-assessment-label" for="tab-assessment" role="tab" aria-controls="panel-assessment">Assessment Evidence</label>
+    </div>
+
+    <div class="tab-panels">
+      <section class="tab-panel" id="panel-files" role="tabpanel" aria-labelledby="tab-files-label">
+        <section class="tabs inner-tabs">
+          <input class="tab-radio" type="radio" id="tab-skill-md" name="file-tabs" checked />
+          <input class="tab-radio" type="radio" id="tab-file-list" name="file-tabs" />
+
+          <div class="tab-list" role="tablist" aria-label="Skill files">
+            <label class="tab-label" id="tab-skill-md-label" for="tab-skill-md" role="tab" aria-controls="panel-skill-md">Instructions</label>
+            <label class="tab-label" id="tab-file-list-label" for="tab-file-list" role="tab" aria-controls="panel-file-list">Package files</label>
+          </div>
+
+          <div class="tab-panels">
+            <section class="tab-panel" id="panel-skill-md" role="tabpanel" aria-labelledby="tab-skill-md-label">
+              <section class="card">
+                <h2>Skill instructions</h2>
+                {skillFrontmatterRows.length > 0 && (
+                  <table class="metadata-table">
+                    <thead>
+                      <tr>
+                        <th>Frontmatter</th>
+                        <th>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {skillFrontmatterRows.map(([key, value]) => (
+                        <tr>
+                          <td><code>{key}</code></td>
+                          <td>{formatFrontmatterValue(value)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                <div class="markdown-body" set:html={sanitizedSkillMarkdown} />
+              </section>
+            </section>
+
+            <section class="tab-panel" id="panel-file-list" role="tabpanel" aria-labelledby="tab-file-list-label">
+              <section class="card">
+                <h2>Package files</h2>
+                <ul class="file-list">
+                  {skill.skill_files.map((file) => (
+                    <li><code>{file.path}</code> <span class="muted">{file.size_bytes} bytes</span></li>
+                  ))}
+                </ul>
+              </section>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="panel-assessment" role="tabpanel" aria-labelledby="tab-assessment-label">
+        <section class="card">
+          <h2>Summary</h2>
+          <p><strong>Recommendation:</strong> <RecommendationBadge recommendation={skill.recommendation} /></p>
+          <p>{skill.adjudication.summary}</p>
+          <table>
+            <tbody>
+              <tr><th scope="row">Adjudication status</th><td>{skill.adjudication.status || "Unknown"}</td></tr>
+              <tr><th scope="row">Coverage sufficient</th><td>{skill.adjudication.coverage_sufficient === true ? "Yes" : skill.adjudication.coverage_sufficient === false ? "No" : "Unknown"}</td></tr>
+              <tr><th scope="row">True positives</th><td>{skill.dispositions.true_positive}</td></tr>
+              <tr><th scope="row">False positives</th><td>{skill.dispositions.false_positive}</td></tr>
+              <tr><th scope="row">Unresolved</th><td>{skill.dispositions.uncertain}</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Limitations:</strong> {skill.adjudication.scope || "Not stated"}{" "}{skill.adjudication.coverage_reason}</p>
+          <p>
+            <a href={skill.assessment_downloads.adjudication} download>Download adjudication.json</a>
+          </p>
+        </section>
+        <ScannerFindings scannerRuns={scannerRuns} scannerFindings={scannerFindings} scannerArtifacts={scannerArtifacts} client:load />
+      </section>
+    </div>
+  </section>
+  <script>
+    import { readQueryValue, replaceQueryState } from "../../lib/url-state.mjs";
+
+    const tabGroups = [
+      {
+        param: "tab",
+        defaultValue: "files",
+        options: [
+          { value: "files", id: "tab-files" },
+          { value: "assessment", id: "tab-assessment" },
+        ],
+      },
+      {
+        param: "fileTab",
+        defaultValue: "instructions",
+        options: [
+          { value: "instructions", id: "tab-skill-md" },
+          { value: "files", id: "tab-file-list" },
+        ],
+      },
+    ];
+
+    tabGroups.forEach((group) => {
+      const values = group.options.map((option) => option.value);
+      const selectedValue = readQueryValue(window.location.search, group.param, group.defaultValue, values);
+      const selectedOption = group.options.find((option) => option.value === selectedValue);
+      const selectedInput = selectedOption ? document.getElementById(selectedOption.id) : null;
+      if (selectedInput instanceof HTMLInputElement) {
+        selectedInput.checked = true;
+      }
+
+      group.options.forEach((option) => {
+        const input = document.getElementById(option.id);
+        if (!(input instanceof HTMLInputElement)) {
+          return;
+        }
+        input.addEventListener("change", () => {
+          if (input.checked) {
+            replaceQueryState({ [group.param]: option.value }, { [group.param]: group.defaultValue });
+          }
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-dialog-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const dialog = document.getElementById(button.getAttribute("data-dialog-target") || "");
+        if (dialog instanceof HTMLDialogElement) {
+          dialog.showModal();
+        }
+      });
+    });
+  </script>
+</BaseLayout>

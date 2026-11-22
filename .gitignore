@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.egg-info/
+site/node_modules/
+site/dist/
+site/.astro/
+site/public/downloads/
+.exchange/generated/
+scanner.log
+
+/build/

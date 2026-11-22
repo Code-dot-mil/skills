@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SkillBrowser from "../components/SkillBrowser";
+import { exchangeIndex as index } from "../lib/exchange-data.mjs";
+---
+
+<BaseLayout title="Skill Exchange">
+  <header class="header home-header">
+    <div>
+      <p class="eyebrow">Agent skills</p>
+      <h1>Skill Exchange</h1>
+      <p class="home-lede">Browse scanner-assessed, evidence-backed skill packages for AI agents.</p>
+    </div>
+    <p class="skill-standard-note">
+      Skills are reusable capabilities that follow the{" "}
+      <a class="external-link" href="https://agentskills.io/home" target="_blank" rel="noreferrer" referrerpolicy="no-referrer">
+        agentskills.io open standard <span aria-hidden="true">↗</span>
+      </a>: a <code>SKILL.md</code> file with metadata and instructions, plus optional scripts, references, assets, and resources an agent can load when a task calls for them.
+    </p>
+  </header>
+  <SkillBrowser client:load skills={index.skills} />
+</BaseLayout>

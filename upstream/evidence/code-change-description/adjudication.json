@@ -1,0 +1,25 @@
+{
+  "safe_to_use": true,
+  "summary": "No security issues were reported in the supplied SKILL.md, and the content appears limited to guidance for drafting concise PR/MR descriptions without instructing tool use, exfiltration, or unsafe actions.",
+  "coverage_sufficient": false,
+  "coverage_reason": "The supplied evidence covers only SKILL.md and notes unresolved local references in that file, so adjudication is limited and not fully complete.",
+  "findings": [],
+  "status": "completed",
+  "scope": "MVP: examines SKILL.md and scanner evidence only; additional skill files are not independently reviewed.",
+  "metadata": {
+    "provider": "azure_openai",
+    "model": "gpt-5.4",
+    "response_model": "gpt-5.4-2026-03-05",
+    "created_at": "2026-11-11T19:47:28.265860+00:00",
+    "duration_seconds": 2.332,
+    "calls_attempted": 1,
+    "calls_succeeded": 1,
+    "token_usage": {
+      "prompt_tokens": 4786,
+      "completion_tokens": 95,
+      "total_tokens": 4881
+    },
+    "enforce_coverage": false
+  },
+  "skill_sha256": "fd59854a91eb69ec1f815584ba4669bb781b683c593cab497f2ddc98ea8c19ea"
+}

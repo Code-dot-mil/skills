@@ -1,0 +1,25 @@
+{
+  "safe_to_use": true,
+  "summary": "Only SKILL.md was supplied and it contains narrowly scoped guidance for creating unit tests, with no instructions indicating exfiltration, privilege misuse, prompt injection, or unsafe autonomous behavior. No issues were reported.",
+  "coverage_sufficient": true,
+  "coverage_reason": "The supplied review scope was limited to SKILL.md, and that file was fully scanned with no findings. This is sufficient to adjudicate the provided evidence, though it does not cover any files outside the supplied scope.",
+  "findings": [],
+  "status": "completed",
+  "scope": "MVP: examines SKILL.md and scanner evidence only; additional skill files are not independently reviewed.",
+  "metadata": {
+    "provider": "azure_openai",
+    "model": "gpt-5.4",
+    "response_model": "gpt-5.4-2026-03-05",
+    "created_at": "2026-11-11T19:48:00.700717+00:00",
+    "duration_seconds": 2.402,
+    "calls_attempted": 1,
+    "calls_succeeded": 1,
+    "token_usage": {
+      "prompt_tokens": 3526,
+      "completion_tokens": 112,
+      "total_tokens": 3638
+    },
+    "enforce_coverage": false
+  },
+  "skill_sha256": "c56fa4ea256a64fdc98603e5de9bf87da8a386e3d9128b6834c06cff13a229b3"
+}
