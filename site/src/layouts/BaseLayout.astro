@@ -17,6 +17,10 @@ const { title } = Astro.props;
   </head>
   <body>
     <main class="page">
+      <p class="release-notice">
+        <strong>RC · Release candidate</strong>
+        Available for sponsor evaluation and feedback. Wait for release approval before using these skills in production.
+      </p>
       <slot />
     </main>
     <footer>SkLC {exchangeIndex.version} · Build {exchangeIndex.revision} from <LocalDate value={builtAt} client:load /></footer>
@@ -30,6 +34,18 @@ const { title } = Astro.props;
   }
   main {
     flex: 1;
+  }
+  .release-notice {
+    margin: 0 0 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--amber);
+    border-radius: var(--radius);
+    background: var(--panel-strong);
+    line-height: 1.5;
+  }
+  .release-notice strong {
+    display: block;
+    color: var(--amber);
   }
   footer {
     padding: 1.5rem;
